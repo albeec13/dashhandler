@@ -3,6 +3,7 @@ package main
 import (
     "net/http"
     "github.com/gin-gonic/gin"
+    "fmt"
 )
 
 type DHCPEvent struct {
@@ -15,14 +16,15 @@ type DHCPEvent struct {
 func main() {
     router := gin.Default()
 
-    router.GET("/:event/:mac/:ip/*hostname", func(c *gin.Context) {
+    router.GET("/handle", func(c *gin.Context) {
         dhcpevent := DHCPEvent{
-            c.Param("event"),
-            c.Param("mac"),
-            c.Param("ip"),
-            c.Param("hostname"),
+            c.DefaultQuery("event", "null"),
+            c.DefaultQuery("mac", "null"),
+            c.DefaultQuery("ip", "null"),
+            c.DefaultQuery("hostname", "null"),
         }
         c.String(http.StatusOK, dhcpevent.Event)
+        fmt.Printf("%+v\n",dhcpevent)
     })
 
     router.Run(":4469")
