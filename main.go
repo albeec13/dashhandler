@@ -8,8 +8,8 @@ import (
     "errors"
     "io/ioutil"
     "encoding/json"
-//    "database/sql"
-//    _ "github.com/go-sql-driver/mysql"
+    "database/sql"
+    _ "github.com/go-sql-driver/mysql"
 )
 
 type ConfigFile struct {
@@ -29,8 +29,30 @@ func main() {
     err := readConfigFile(&config)
     router := gin.Default()
 
-    fmt.Println(config)
-    fmt.Println(err)
+    if err == nil {
+        db, err :=  sql.Open("mysql", config.DBUser + ":" + config.DBPass + "@/dashhandler")
+
+        if err == nil {
+            rows, err := db.Query("SHOW TABLES")
+            if err == nil {
+                fmt.Println(rows)
+
+                for rows.Next() {
+                    var name string
+                    if err := rows.Scan(&name); err == nil {
+                        fmt.Printf("Table: %s\n", name)
+                    } else {
+                        fmt.Printf("Row.Scan() error: %s", err)
+                    }
+                }
+
+            } else {
+                fmt.Printf("DB Query error: %s\n", err)
+            }
+        } else {
+            fmt.Printf("DB open failed with error: %s", err)
+        }
+    }
 
     router.GET("/handle", func(c *gin.Context) {
         dhcpevent := DHCPEvent {
@@ -66,3 +88,4 @@ func parseConfigFile(config *ConfigFile, file []byte) (err error) {
         return errors.New("Error: config file not found")
     }
 }
+
