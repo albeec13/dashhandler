@@ -1,4 +1,5 @@
 {
     "DBUser" : "user",
-    "DBPass" : "pass"
+    "DBPass" : "pass",
+    "DBName" : "dbname"
 }

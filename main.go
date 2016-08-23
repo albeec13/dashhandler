@@ -6,15 +6,15 @@ import (
     "fmt"
     "strings"
     "errors"
+    "log"
     "io/ioutil"
     "encoding/json"
-    "database/sql"
-    _ "github.com/go-sql-driver/mysql"
 )
 
 type ConfigFile struct {
     DBUser  string
     DBPass  string
+    DBName  string
 }
 
 type DHCPEvent struct {
@@ -30,13 +30,12 @@ func main() {
     router := gin.Default()
 
     if err == nil {
-        db, err :=  sql.Open("mysql", config.DBUser + ":" + config.DBPass + "@/dashhandler")
+        var dbh DBHelper
+        err := dbh.Open(config.DBUser, config.DBPass, config.DBName)
 
         if err == nil {
-            rows, err := db.Query("SHOW TABLES")
+            rows, err := dbh.Query("SHOW TABLES")
             if err == nil {
-                fmt.Println(rows)
-
                 for rows.Next() {
                     var name string
                     if err := rows.Scan(&name); err == nil {
@@ -45,13 +44,14 @@ func main() {
                         fmt.Printf("Row.Scan() error: %s", err)
                     }
                 }
-
             } else {
-                fmt.Printf("DB Query error: %s\n", err)
+                fmt.Printf("DATABASE ERROR: %s\n", err)
             }
         } else {
-            fmt.Printf("DB open failed with error: %s", err)
+            log.Fatalf("FATAL ERROR: %s\n", err)
         }
+    } else {
+        log.Fatalf("FATAL ERROR: %s\n", err)
     }
 
     router.GET("/handle", func(c *gin.Context) {
@@ -73,7 +73,7 @@ func readConfigFile(config *ConfigFile) (err error) {
     if file != nil {
         return parseConfigFile(config, file)
     } else {
-        return errors.New("Error: config file not found")
+        return errors.New("'dashhandler.conf' invalid or missing. See 'dashhandler.conf.template'")
     }
 }
 
@@ -82,10 +82,10 @@ func parseConfigFile(config *ConfigFile, file []byte) (err error) {
         if err := json.Unmarshal(file, config); err == nil {
             return nil
         } else {
-            return errors.New("Error: invalid config JSON")
+            return errors.New("'dashhandler.conf' invalid or missing. See 'dashhandler.conf.template'")
         }
     } else {
-        return errors.New("Error: config file not found")
+        return errors.New("'dashhandler.conf' invalid or missing. See 'dashhandler.conf.template'")
     }
 }
 
