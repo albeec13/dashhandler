@@ -24,23 +24,17 @@ type DHCPEvent struct {
 }
 
 func main() {
+    var dbh DBHelper
     config, err := readConfigFile()
-    router := gin.Default()
 
     if err == nil {
-        var dbh DBHelper
         err := dbh.Open(config.DBUser, config.DBPass, config.DBName)
 
         if err == nil {
-            rows, err := dbh.Query("SHOW TABLES")
+            tables, err := dbh.GetTables()
             if err == nil {
-                for rows.Next() {
-                    var name string
-                    if err := rows.Scan(&name); err == nil {
-                        fmt.Printf("Table: %s\n", name)
-                    } else {
-                        fmt.Printf("Row.Scan() error: %s", err)
-                    }
+                for _, table := range tables {
+                    fmt.Printf("Table: %s\n", table)
                 }
             } else {
                 fmt.Printf("DATABASE ERROR: %s\n", err)
@@ -52,6 +46,8 @@ func main() {
         log.Fatalf("FATAL ERROR: %s\n", err)
     }
 
+    // Configure routes
+    router := gin.Default()
     router.GET("/handle", func(c *gin.Context) {
         dhcpevent := DHCPEvent {
             c.DefaultQuery("event", "null"),
@@ -63,6 +59,7 @@ func main() {
         fmt.Println(dhcpevent)
     })
 
+    // Run server
     router.Run(":4469")
 }
 
