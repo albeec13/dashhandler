@@ -5,7 +5,6 @@ import (
     "github.com/gin-gonic/gin"
     "fmt"
     "strings"
-    "errors"
     "log"
     "io/ioutil"
     "encoding/json"
@@ -25,8 +24,7 @@ type DHCPEvent struct {
 }
 
 func main() {
-    var config ConfigFile
-    err := readConfigFile(&config)
+    config, err := readConfigFile()
     router := gin.Default()
 
     if err == nil {
@@ -68,24 +66,12 @@ func main() {
     router.Run(":4469")
 }
 
-func readConfigFile(config *ConfigFile) (err error) {
-    file, err := ioutil.ReadFile("dashhandler.conf")
-    if file != nil {
-        return parseConfigFile(config, file)
-    } else {
-        return errors.New("'dashhandler.conf' invalid or missing. See 'dashhandler.conf.template'")
-    }
-}
+func readConfigFile() (*ConfigFile, error) {
+    config := &ConfigFile{}
 
-func parseConfigFile(config *ConfigFile, file []byte) (err error) {
+    file, err  := ioutil.ReadFile("dashhandler.conf")
     if file != nil {
-        if err := json.Unmarshal(file, config); err == nil {
-            return nil
-        } else {
-            return errors.New("'dashhandler.conf' invalid or missing. See 'dashhandler.conf.template'")
-        }
-    } else {
-        return errors.New("'dashhandler.conf' invalid or missing. See 'dashhandler.conf.template'")
+        err = json.Unmarshal(file, config)
     }
+    return config, err
 }
-
