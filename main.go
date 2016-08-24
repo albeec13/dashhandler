@@ -19,14 +19,11 @@ func main() {
     var dbh DBHelper
     var config ConfigFile
     path := "dashhandler.conf"
-    err := config.ReadConfigFile(path)
-
-    if err == nil {
-        err := dbh.Open(config.DBUser, config.DBPass, config.DBName)
-
-        if err == nil {
-            tables, err := dbh.GetTables()
-            if err == nil {
+    
+    if err := config.ReadConfigFile(path); err == nil {
+        if err = dbh.Open(&config); err == nil {
+            var tables []string
+            if tables, err = dbh.GetTables(); err == nil {
                 for _, table := range tables {
                     fmt.Printf("Table: %s\n", table)
                 }
@@ -51,6 +48,10 @@ func main() {
         }
         c.String(http.StatusOK, dhcpevent.Event)
         fmt.Println(dhcpevent)
+        if result, err := dbh.LogDevice(&dhcpevent); err != nil {
+            fmt.Printf("LOG DHCPEVENT ERROR: %s, result:", err)
+            fmt.Println(result)
+        }
     })
 
     // Run server
