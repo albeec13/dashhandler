@@ -6,15 +6,7 @@ import (
     "fmt"
     "strings"
     "log"
-    "io/ioutil"
-    "encoding/json"
 )
-
-type ConfigFile struct {
-    DBUser  string
-    DBPass  string
-    DBName  string
-}
 
 type DHCPEvent struct {
     Event    string
@@ -25,7 +17,9 @@ type DHCPEvent struct {
 
 func main() {
     var dbh DBHelper
-    config, err := readConfigFile()
+    var config ConfigFile
+    path := "dashhandler.conf"
+    err := config.ReadConfigFile(path)
 
     if err == nil {
         err := dbh.Open(config.DBUser, config.DBPass, config.DBName)
@@ -61,14 +55,4 @@ func main() {
 
     // Run server
     router.Run(":4469")
-}
-
-func readConfigFile() (*ConfigFile, error) {
-    config := &ConfigFile{}
-
-    file, err  := ioutil.ReadFile("dashhandler.conf")
-    if file != nil {
-        err = json.Unmarshal(file, config)
-    }
-    return config, err
 }
