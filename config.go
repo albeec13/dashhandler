@@ -9,6 +9,7 @@ type ConfigFile struct {
     DBUser  string
     DBPass  string
     DBName  string
+    DBTables []string
 }
 
 func (cf *ConfigFile) ReadConfigFile(path string) (error) {
