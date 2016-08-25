@@ -52,6 +52,7 @@ func main() {
             fmt.Printf("LOG DHCPEVENT ERROR: %s, result:", err)
             fmt.Println(result)
         }
+        ProcessDashButton(&config, dhcpevent.MAC)
     })
 
     // Run server
